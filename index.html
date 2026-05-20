@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DecaKids Ultra Pro - Ecosistema Avanzado de Alfabetismo Físico</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#4f46e5', 600: '#4338ca' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+    
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // Base de datos completa (3 Clases x 30 Alumnos) de tu proyecto original
+        const namesClass1 = ["Hugo T.", "Sofía M.", "Mateo R.", "Leo G.", "Lucas P.", "Martín S.", "Daniel N.", "Alejandro V.", "Manuel B.", "Álvaro J.", "Adrián C.", "Enzo F.", "Mario L.", "Diego H.", "Marcos A.", "Eva D.", "Alba G.", "Emma R.", "Daniela M.", "Noa S.", "Valeria P.", "Claudia K.", "María L.", "Lucía F.", "Martina J.", "Alma N.", "Chloe B.", "Mía V.", "Carmen C.", "Elena G."];
+        const namesClass2 = ["Pablo M.", "Sergio T.", "Jorge R.", "Iván L.", "Carlos V.", "Miguel B.", "David A.", "Álex J.", "Bruno F.", "Óliver S.", "Thiago H.", "Fabio C.", "Gonzalo G.", "Izan M.", "Gael N.", "Eric P.", "Julia D.", "Sara R.", "Lara M.", "Inés S.", "Vega V.", "Paula B.", "Irene F.", "Alicia C.", "Clara G.", "Ainara L.", "Olivia H.", "Ainhoa M.", "Nerea J.", "Rocío P."];
+        const namesClass3 = ["Javier R.", "Héctor M.", "Rubén G.", "Víctor S.", "Raúl F.", "Isaac L.", "Samuel B.", "Ismael A.", "Francisco T.", "José H.", "Juan C.", "Tomás V.", "Nicolás P.", "Alan M.", "Denis G.", "Alberto J.", "Marta S.", "Ana B.", "Belén R.", "Andrea M.", "Natalia F.", "Celia C.", "Cristina G.", "Laura L.", "Marina H.", "Silvia V.", "Rebeca P.", "Nuria D.", "Ángela M.", "Leire J."];
+
+        const motorProfiles = ["Especialista Locomoción", "Destreza Manipulativa", "Control de Estabilidad", "Perfil Equilibrado", "Desarrollo en Progreso"];
+        const learningStyles = ["Reto Individual", "Cooperativo", "Descubrimiento Guiado", "Asignación de Tareas", "Resolución de Problemas"];
+        const currentMissions = ["El vuelo del proyectil", "La senda del ninja", "Equilibrio en el abismo", "El circuito de postas", "Lanzamiento con diana"];
+        
+        const ludotecaJuegos = [
+            { id: 1, name: "Canguros al rescate", objetivo: "Locomoción (Saltos pliométricos)", desc: "Los niños deben cruzar el espacio saltando a pies juntos dentro de aros. Si se cae un aro, un compañero debe reponerlo.", variante: "Añadir lanzamientos de saquitos de arena mientras saltan.", icono: "🦘" },
+            { id: 2, name: "El Pañuelo Multimotor", objetivo: "Velocidad de reacción y Agilidad", desc: "Al decir su número, los alumnos deben salir corriendo, esquivar tres conos en zigzag y atrapar el pañuelo.", variante: "El regreso al origen se hace con cuadrupedia o pata coja.", icono: "🎽" },
+            { id: 3, name: "Cazadores de Cohetes", objetivo: "Manipulación (Lanzamiento adaptado)", desc: "Lanzar jabalinas de espuma o vortex intentando que pasen a través de grandes aros suspendidos.", variante: "Aumentar la distancia de tiro gradualmente según aciertos.", icono: "🚀" },
+            { id: 4, name: "El puente colgante", objetivo: "Estabilidad y Control Postural", desc: "Caminar sobre líneas en el suelo o bancos suecos portando un saquito en la cabeza sin que se caiga.", variante: "Cruzar el banco de espaldas o con los ojos semicerrados.", icono: "🪵" },
+            { id: 5, name: "La fortaleza móvil", objetivo: "Estrategia cooperativa y Percepción", desc: "Por parejas, uno protege un cono gigante con un escudo flotador y el otro intenta derribar los conos lanzando pelotas blandas.", variante: "Lanzar exclusivamente con la mano no dominante.", icono: "🏰" }
+        ];
+
+        // Función generadora de datos con variables fisiológicas y ALPHA
+        const generateClassData = (className, namesArray, stage, baseAge) => {
+            return {
+                name: className,
+                stage: stage,
+                athletes: namesArray.map((name, index) => {
+                    const seed = index + baseAge;
+                    return {
+                        id: index + 1,
+                        name: name,
+                        profile: motorProfiles[index % motorProfiles.length],
+                        style: learningStyles[(index + 2) % learningStyles.length],
+                        mission: currentMissions[index % currentMissions.length],
+                        skills: {
+                            locomocion: 40 + (seed * 7) % 56,
+                            estabilidad: 45 + (seed * 5) % 51,
+                            manipulacion: 35 + (seed * 9) % 61
+                        },
+                        alpha: {
+                            peso: Math.round(22 + (baseAge * 2.5) + (index % 7)),
+                            altura: Math.round(110 + (baseAge * 5) + (index % 12)),
+                            salto: Math.round(100 + (baseAge * 6) + (index * 2) % 45),
+                            fuerza: Math.round(8 + (baseAge * 1.2) + (index % 6))
+                        },
+                        rpe: 2 + (index % 6),
+                        wellness: {
+                            sueno: 3 + (index % 3), // 1-5
+                            energia: 3 + (seed % 3)  // 1-5
+                        },
+                        asistencia: true,
+                        logros: ["Pionero"]
+                    };
+                })
+            };
+        };
+
+        const initialDataset = [
+            generateClassData("Clase A (Fase del Descubrimiento)", namesClass1, "Etapa de Fundamentos (6-7 años)", 6),
+            generateClassData("Clase B (Fase de Consolidación)", namesClass2, "Etapa de Aprendizaje Motor (8-9 años)", 8),
+            generateClassData("Clase C (Fase de Especialización Base)", namesClass3, "Etapa de Rendimiento Lúdico (10-12 años)", 10)
+        ];
+
+        // --- COMPONENTES AUXILIARES DE GRÁFICOS ---
+        const SkillsRadar = ({ locomocion, estabilidad, manipulacion, isDarkMode }) => {
+            const size = 200, center = size / 2, maxRadius = 65;
+            const gridColor = isDarkMode ? "#334155" : "#cbd5e1";
+
+            const getPoint = (val, angle) => {
+                const rad = (angle * Math.PI) / 180;
+                const r = (val / 100) * maxRadius;
+                return `${center + r * Math.cos(rad)},${center + r * Math.sin(rad)}`;
+            };
+
+            const pLoc = getPoint(locomocion, -90);
+            const pEst = getPoint(estabilidad, 30);
+            const pMan = getPoint(manipulacion, 150);
+
+            return (
+                <div className="relative flex justify-center items-center my-2">
+                    <svg width={size} height={size} className="overflow-visible">
+                        {[20, 40, 60, 80, 100].map((lvl) => (
+                            <polygon key={lvl} points={`${getPoint(lvl, -90)} ${getPoint(lvl, 30)} ${getPoint(lvl, 150)}`} fill="none" stroke={gridColor} strokeWidth="1" strokeDasharray={lvl === 100 ? "0" : "3 3"} />
+                        ))}
+                        <line x1={center} y1={center} x2={getPoint(100, -90).split(',')[0]} y2={getPoint(100, -90).split(',')[1]} stroke={gridColor} strokeWidth="1" />
+                        <line x1={center} y1={center} x2={getPoint(100, 30).split(',')[0]} y2={getPoint(100, 30).split(',')[1]} stroke={gridColor} strokeWidth="1" />
+                        <line x1={center} y1={center} x2={getPoint(100, 150).split(',')[0]} y2={getPoint(100, 150).split(',')[1]} stroke={gridColor} strokeWidth="1" />
+
+                        <polygon points={`${pLoc} ${pEst} ${pMan}`} fill="rgba(79, 70, 229, 0.3)" stroke="#4f46e5" strokeWidth="2" />
+                        <circle cx={pLoc.split(',')[0]} cy={pLoc.split(',')[1]} r="4" fill="#4f46e5" />
+                        <circle cx={pEst.split(',')[0]} cy={pEst.split(',')[1]} r="4" fill="#10b981" />
+                        <circle cx={pMan.split(',')[0]} cy={pMan.split(',')[1]} r="4" fill="#f43f5e" />
+                    </svg>
+                </div>
+            );
+        };
+
+        // --- VISTA 1: DASHBOARD ANALÍTICO GLOBAL ---
+        const DashboardView = ({ classes, classIdx }) => {
+            const currentClass = classes[classIdx];
+            
+            const stats = useMemo(() => {
+                let totalMotor = 0, totalRpe = 0, alerts = 0, present = 0;
+                currentClass.athletes.forEach(a => {
+                    totalMotor += (a.skills.locomocion + a.skills.estabilidad + a.skills.manipulacion) / 3;
+                    totalRpe += a.rpe;
+                    if (a.rpe > 6) alerts++;
+                    if (a.asistencia) present++;
+                });
+                return {
+                    avgMotor: Math.round(totalMotor / currentClass.athletes.length),
+                    avgRpe: (totalRpe / currentClass.athletes.length).toFixed(1),
+                    alerts,
+                    attendanceRate: Math.round((present / currentClass.athletes.length) * 100)
+                };
+            }, [currentClass]);
+
+            return (
+                <div className="space-y-6 animate-fade">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border dark:border-slate-800 shadow-sm">
+                            <div className="text-xs font-bold text-slate-400 uppercase">Índice Motor Medio</div>
+                            <div className="text-2xl font-black mt-1 text-indigo-600 dark:text-indigo-400">{stats.avgMotor} / 100</div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border dark:border-slate-800 shadow-sm">
+                            <div className="text-xs font-bold text-slate-400 uppercase">Carga Percibida (RPE)</div>
+                            <div className="text-2xl font-black mt-1 text-emerald-500">{stats.avgRpe} / 10</div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border dark:border-slate-800 shadow-sm">
+                            <div className="text-xs font-bold text-slate-400 uppercase">Alertas por Fatiga</div>
+                            <div className="text-2xl font-black mt-1 text-rose-500">{stats.alerts} Críticas</div>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border dark:border-slate-800 shadow-sm">
+                            <div className="text-xs font-bold text-slate-400 uppercase">Asistencia Hoy</div>
+                            <div className="text-2xl font-black mt-1 text-amber-500">{stats.attendanceRate}%</div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
+                        <h3 className="font-bold text-sm uppercase text-slate-500 mb-4">🎯 Distribución de Carga en Alumnos Críticos</h3>
+                        <div className="space-y-3">
+                            {currentClass.athletes.slice(0, 5).map(a => (
+                                <div key={a.id} className="flex items-center justify-between text-xs">
+                                    <span className="font-bold w-24">{a.name}</span>
+                                    <div className="flex-1 mx-4 bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden">
+                                        <div className="bg-indigo-600 h-full" style={{ width: `${(a.skills.locomocion + a.skills.estabilidad + a.skills.manipulacion)/3}%` }}></div>
+                                    </div>
+                                    <span className="font-mono text-slate-400">RPE: {a.rpe}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- VISTA 2: PERFIL INDIVIDUAL INTERACTIVO ---
+        const AthleteView = ({ classes, classIdx, athleteId, setClasses, isDarkMode }) => {
+            const currentClass = classes[classIdx];
+            const athlete = currentClass.athletes.find(a => a.id === athleteId) || currentClass.athletes[0];
+
+            const handleSkillChange = (key, value) => {
+                setClasses(prev => prev.map((c, cI) => {
+                    if (cI !== classIdx) return c;
+                    return {
+                        ...c,
+                        athletes: c.athletes.map(a => a.id === athleteId ? { ...a, skills: { ...a.skills, [key]: parseInt(value) } } : a)
+                    };
+                }));
+            };
+
+            const globalScore = Math.round((athlete.skills.locomocion + athlete.skills.estabilidad + athlete.skills.manipulacion) / 3);
+
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 anonymity-safe animate-fade">
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-gradient-to-tr from-indigo-950 via-indigo-900 to-slate-900 text-white p-6 rounded-3xl shadow-md flex justify-between items-center">
+                            <div>
+                                <span className="bg-white/10 text-xs px-2.5 py-1 rounded-md uppercase tracking-wider font-mono">ID-{athlete.id.toString().padStart(2, '0')}</span>
+                                <h2 className="text-2xl font-black mt-2">{athlete.name}</h2>
+                                <p className="text-indigo-200 text-xs mt-1">{currentClass.stage}</p>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md">{athlete.profile}</span>
+                                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md">Estilo: {athlete.style}</span>
+                                </div>
+                            </div>
+                            <div className="bg-slate-900/50 p-4 rounded-2xl border border-white/10 text-center min-w-[110px]">
+                                <div className="text-[9px] uppercase tracking-wider text-indigo-300 font-bold">Índice Global</div>
+                                <div className="text-4xl font-black mt-1">{globalScore}</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
+                            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-4">⚙️ Reajuste Psicomotriz Reales</h3>
+                            <div className="space-y-4">
+                                {[
+                                    { k: 'locomocion', l: 'Locomoción (Carrera/Salto)', c: 'accent-indigo-600 text-indigo-600' },
+                                    { k: 'estabilidad', l: 'Estabilidad (Giro/Equilibrio)', c: 'accent-emerald-600 text-emerald-600' },
+                                    { k: 'manipulacion', l: 'Manipulación (Lanzamiento/Recepción)', c: 'accent-rose-600 text-rose-600' }
+                                ].map(s => (
+                                    <div key={s.k} className="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl">
+                                        <div className="flex justify-between text-xs font-bold mb-1">
+                                            <span>{s.l}</span>
+                                            <span className={s.c}>{athlete.skills[s.k]}%</span>
+                                        </div>
+                                        <input type="range" min="10" max="100" value={athlete.skills[s.k]} onChange={e => handleSkillChange(s.k, e.target.value)} className={`w-full ${s.c.split(' ')[0]}`} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col items-center">
+                            <span className="text-xs font-bold uppercase text-slate-400 mb-2">Biometría Funcional</span>
+                            <SkillsRadar {...athlete.skills} isDarkMode={isDarkMode} />
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border dark:border-slate-800 shadow-sm space-y-3">
+                            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">🧠 Estado de Wellness Adaptado</h4>
+                            <div className="grid grid-cols-2 gap-2 text-center">
+                                <div className="bg-indigo-50 dark:bg-indigo-950/40 p-3 rounded-xl border border-indigo-100/50 dark:border-indigo-900/50">
+                                    <div className="text-[18px]">😴</div>
+                                    <div className="text-[10px] text-slate-500 font-bold mt-1">Calidad Sueño</div>
+                                    <div className="font-black text-indigo-600 dark:text-indigo-400 text-sm mt-0.5">{athlete.wellness.sueno}/5</div>
+                                </div>
+                                <div className="bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-100/50 dark:border-emerald-900/50">
+                                    <div className="text-[18px]">⚡</div>
+                                    <div className="text-[10px] text-slate-500 font-bold mt-1">Nivel Energía</div>
+                                    <div className="font-black text-emerald-600 dark:text-emerald-400 text-sm mt-0.5">{athlete.wellness.energia}/5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- VISTA 3: CUADERNO DE EVALUACIÓN DOCENTE ---
+        const CoachView = ({ classes, classIdx, setClasses, searchQuery, setSearchQuery }) => {
+            const currentClass = classes[classIdx];
+
+            const filteredAthletes = useMemo(() => {
+                return currentClass.athletes.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()));
+            }, [currentClass, searchQuery]);
+
+            const toggleAttendance = (id) => {
+                setClasses(prev => prev.map((c, cI) => {
+                    if (cI !== classIdx) return c;
+                    return { ...c, athletes: c.athletes.map(a => a.id === id ? { ...a, asistencia: !a.asistencia } : a) };
+                }));
+            };
+
+            const changeRpe = (id, val) => {
+                setClasses(prev => prev.map((c, cI) => {
+                    if (cI !== classIdx) return c;
+                    return { ...c, athletes: c.athletes.map(a => a.id === id ? { ...a, rpe: Math.min(Math.max(parseInt(val) || 0, 1), 10) } : a) };
+                }));
+            };
+
+            return (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 shadow-sm overflow-hidden animate-fade">
+                    <div className="p-4 bg-slate-100 dark:bg-slate-800 flex flex-col sm:flex-row gap-3 justify-between items-center border-b dark:border-slate-700">
+                        <span className="font-bold text-xs uppercase tracking-wider">Registro Diario Clínico</span>
+                        <input type="text" placeholder="🔍 Buscar alumno..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full sm:w-64 bg-white dark:bg-slate-900 border dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs outline-none focus:border-brand-500" />
+                    </div>
+
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[480px] overflow-y-auto">
+                        {filteredAthletes.map(a => (
+                            <div key={a.id} className={`p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all ${!a.asistencia ? 'opacity-40 bg-slate-50/50' : ''}`}>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => toggleAttendance(a.id)} className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold border transition-colors ${a.asistencia ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-300'}`}>
+                                            {a.asistencia && "✓"}
+                                        </button>
+                                        <h4 className="font-bold text-sm dark:text-white">{a.name}</h4>
+                                        <span className="text-[9px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono text-slate-400">ID-{a.id}</span>
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-1">Misión activa: <span className="text-slate-600 dark:text-slate-300 font-medium">{a.mission}</span></p>
+                                </div>
+
+                                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase">RPE (1-10):</label>
+                                        <input type="number" min="1" max="10" value={a.rpe} onChange={e => changeRpe(a.id, e.target.value)} disabled={!a.asistencia} className="w-12 bg-slate-50 dark:bg-slate-800 text-center font-bold text-xs p-1.5 rounded-lg border dark:border-slate-700" />
+                                    </div>
+                                    {a.asistencia && a.rpe > 6 && (
+                                        <span className="bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 px-2 py-1 rounded-md text-[9px] font-black animate-pulse">FATIGA ALTA ⚠️</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- VISTA 4: BATERÍA ALPHA-FITNESS CIENTÍFICA ---
+        const AlphaView = ({ classes, classIdx, setClasses }) => {
+            const currentClass = classes[classIdx];
+
+            const handleAlphaChange = (id, metric, val) => {
+                setClasses(prev => prev.map((c, cI) => {
+                    if (cI !== classIdx) return c;
+                    return {
+                        ...c,
+                        athletes: c.athletes.map(a => a.id === id ? { ...a, alpha: { ...a.alpha, [metric]: parseFloat(val) || 0 } } : a)
+                    };
+                }));
+            };
+
+            // Clasificación normativa simple de salud escolar según salto
+            const getHealthZone = (salto) => {
+                if (salto < 115) return { text: "Bajo", style: "bg-rose-50 text-rose-600 dark:bg-rose-950/30" };
+                if (salto < 140) return { text: "Saludable", style: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30" };
+                return { text: "Excelente", style: "bg-purple-50 text-purple-600 dark:bg-purple-950/30" };
+            };
+
+            return (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 p-6 shadow-sm overflow-hidden animate-fade">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-base font-black flex items-center gap-2">📏 Protocolo de Valoración ALPHA-Fitness</h3>
+                        <span className="text-[10px] font-mono text-slate-400">Normativa Eurofit Adaptada</span>
+                    </div>
+
+                    <div className="overflow-x-auto hide-scrollbar">
+                        <table className="w-full text-left text-xs">
+                            <thead className="bg-slate-50 dark:bg-slate-800 font-bold uppercase text-slate-400 border-b dark:border-slate-700">
+                                <tr>
+                                    <th className="p-3">Alumno</th>
+                                    <th className="p-3">Masa (kg)</th>
+                                    <th className="p-3">Estatura (cm)</th>
+                                    <th className="p-3">Longitud Pies Juntos (cm)</th>
+                                    <th className="p-3">Zona de Salud</th>
+                                    <th className="p-3">Prensión Manual (kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {currentClass.athletes.map(a => {
+                                    const zone = getHealthZone(a.alpha.salto);
+                                    return (
+                                        <tr key={a.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                            <td className="p-3 font-bold text-slate-800 dark:text-slate-200">{a.name}</td>
+                                            <td className="p-3">
+                                                <input type="number" value={a.alpha.peso} onChange={e => handleAlphaChange(a.id, 'peso', e.target.value)} className="w-16 bg-transparent font-medium border-b border-transparent hover:border-slate-300 focus:border-brand-500 outline-none" />
+                                            </td>
+                                            <td className="p-3">
+                                                <input type="number" value={a.alpha.altura} onChange={e => handleAlphaChange(a.id, 'altura', e.target.value)} className="w-16 bg-transparent font-medium border-b border-transparent hover:border-slate-300 focus:border-brand-500 outline-none" />
+                                            </td>
+                                            <td className="p-3">
+                                                <input type="number" value={a.alpha.salto} onChange={e => handleAlphaChange(a.id, 'salto', e.target.value)} className="w-16 bg-transparent font-black text-indigo-600 dark:text-indigo-400 border-b border-transparent hover:border-slate-300 focus:border-brand-500 outline-none" />
+                                            </td>
+                                            <td className="p-3">
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${zone.style}`}>{zone.text}</span>
+                                            </td>
+                                            <td className="p-3">
+                                                <input type="number" value={a.alpha.fuerza} onChange={e => handleAlphaChange(a.id, 'fuerza', e.target.value)} className="w-16 bg-transparent font-medium border-b border-transparent hover:border-slate-300 focus:border-brand-500 outline-none" />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APLICACIÓN MÁSTER COHESIONADA ---
+        function DecaKidsApp() {
+            const [view, setView] = useState('dashboard');
+            const [isDarkMode, setIsDarkMode] = useState(false);
+            const [classes, setClasses] = useState(initialDataset);
+            const [classIdx, setClassIdx] = useState(0);
+            const [athleteId, setAthleteId] = useState(1);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [ludoIdx, setLudoIdx] = useState(0);
+
+            useEffect(() => {
+                if (isDarkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }, [isDarkMode]);
+
+            const activeClass = classes[classIdx];
+            const activeAthlete = activeClass.athletes.find(a => a.id === athleteId) || activeClass.athletes[0];
+
+            // Exportador unificado de datos clínicos para SPSS/Excel/TFG
+            const handleExport = () => {
+                const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(classes, null, 2))}`;
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.href = jsonString;
+                downloadAnchor.download = "base_datos_decakids_tfg.json";
+                downloadAnchor.click();
+            };
+
+            return (
+                <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p
